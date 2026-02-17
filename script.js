@@ -176,7 +176,11 @@ function renderProducts(items) {
 		return;
 	}
 
+	window.productCache = window.productCache || {};
+
 	var html = items.map(function (p) {
+		// cache product for later add-to-cart operations
+		window.productCache[p.id] = p;
 		var title = escapeHtml(p.title || '');
 		var shortTitle = truncate(title, 60);
 		var price = typeof p.price === 'number' ? p.price.toFixed(2) : escapeHtml(p.price);
@@ -206,7 +210,7 @@ function renderProducts(items) {
 					<div class="mt-2"><span class="font-bold text-lg text-gray-900">$${price}</span></div>
 					<div class="mt-4 flex gap-2">
 						<button type="button" onclick="openProductModal(${p.id})" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-gray-200 text-sm"><i class="fa-regular fa-eye"></i><span>Details</span></button>
-						<button class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm" onclick="alert('Added to cart: ${escapeHtml(p.title)}')"><i class="fa-solid fa-cart-shopping"></i><span>Add</span></button>
+						<button class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm" onclick="addToCart(${p.id})"><i class="fa-solid fa-cart-shopping"></i><span>Add</span></button>
 					</div>
 				</div>
 			</article>
@@ -279,6 +283,8 @@ function fetchTrendingProducts() {
 
 			// Build readable multi-line HTML string and set once
 			var html = top.map(function (p) {
+				window.productCache = window.productCache || {};
+				window.productCache[p.id] = p;
 				var title = escapeHtml(p.title);
 				var category = escapeHtml(p.category);
 				var price = typeof p.price === 'number' ? p.price.toFixed(2) : escapeHtml(p.price);
@@ -306,11 +312,11 @@ function fetchTrendingProducts() {
 						</div>
 
 						<div class="mt-4 flex gap-2">
-									<button type="button" onclick="openProductModal(${p.id})" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-gray-200 text-sm">
-										<i class="fa-regular fa-eye"></i>
-										<span>Details</span>
-									</button>
-							<button class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm">
+							<button type="button" onclick="openProductModal(${p.id})" class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-gray-200 text-sm">
+								<i class="fa-regular fa-eye"></i>
+								<span>Details</span>
+							</button>
+							<button class="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm" onclick="addToCart(${p.id})">
 								<i class="fa-solid fa-cart-shopping"></i>
 								<span>Add</span>
 							</button>
@@ -368,11 +374,11 @@ function openProductModal(id) {
 				</div>
 			`;
 
-			// attach simple handlers (placeholder)
+			// attach handlers
 			var buyBtn = document.getElementById('modalBuyBtn');
 			var addBtn = document.getElementById('modalAddBtn');
 			if (buyBtn) buyBtn.addEventListener('click', function () { alert('Buy now: ' + title); });
-			if (addBtn) addBtn.addEventListener('click', function () { alert('Added to cart: ' + title); });
+			if (addBtn) addBtn.addEventListener('click', function () { addToCart(p.id); });
 		})
 		.catch(function (err) {
 			console.error('Failed to load product', err);
@@ -394,6 +400,223 @@ document.addEventListener('click', function (e) {
 	var closeBtn = document.getElementById('modalCloseBtn');
 	if (e.target === overlay || e.target === closeBtn || closeBtn.contains(e.target)) {
 		closeProductModal();
+	}
+});
+
+// --- Cart and product storage ---
+window.cart = window.cart || [];
+window.productsArray = window.productsArray || [];
+
+function loadCartFromStorage() {
+	var raw = localStorage.getItem('swiftcart_cart');
+	return Promise.resolve().then(function () {
+		if (!raw) return [];
+		return JSON.parse(raw);
+	}).then(function (parsed) {
+		window.cart = Array.isArray(parsed) ? parsed : [];
+		return window.cart;
+	}).catch(function (e) {
+		console.error('Failed to load cart from storage', e);
+		window.cart = [];
+		return window.cart;
+	});
+}
+
+function saveCartToStorage() {
+	return Promise.resolve().then(function () {
+		localStorage.setItem('swiftcart_cart', JSON.stringify(window.cart || []));
+	}).catch(function (e) {
+		console.error('Failed to save cart to storage', e);
+	});
+}
+
+function loadProductsFromStorage() {
+	var raw = localStorage.getItem('swiftcart_products');
+	return Promise.resolve().then(function () {
+		if (!raw) return [];
+		return JSON.parse(raw);
+	}).then(function (parsed) {
+		window.productsArray = Array.isArray(parsed) ? parsed : [];
+		return window.productsArray;
+	}).catch(function (e) {
+		console.error('Failed to load products from storage', e);
+		window.productsArray = [];
+		return window.productsArray;
+	});
+}
+
+function saveProductsToStorage() {
+	return Promise.resolve().then(function () {
+		localStorage.setItem('swiftcart_products', JSON.stringify(window.productsArray || []));
+	}).catch(function (e) {
+		console.error('Failed to save products to storage', e);
+	});
+}
+
+function storeProduct(p) {
+	window.productsArray = window.productsArray || [];
+	var exists = window.productsArray.find(function (x) { return String(x.id) === String(p.id); });
+	if (!exists) {
+		window.productsArray.push(p);
+		saveProductsToStorage();
+	}
+}
+
+function computeCartTotal() {
+	return (window.cart || []).reduce(function (sum, item) {
+		return sum + (Number(item.price || 0) * (item.quantity || 1));
+	}, 0);
+}
+
+function updateCartCountUI() {
+	var badge = document.getElementById('cartCountBadge');
+	var badgeMobile = document.getElementById('cartCountBadgeMobile');
+	var count = (window.cart || []).reduce(function (s, it) { return s + (it.quantity || 1); }, 0);
+	if (count > 0) {
+		if (badge) { badge.style.display = 'inline-block'; badge.textContent = String(count); }
+		if (badgeMobile) { badgeMobile.style.display = 'inline-block'; badgeMobile.textContent = String(count); }
+	} else {
+		if (badge) badge.style.display = 'none';
+		if (badgeMobile) badgeMobile.style.display = 'none';
+	}
+}
+
+function renderCartSidebar() {
+	var list = document.getElementById('cartItemsList');
+	var totalEl = document.getElementById('cartTotalPrice');
+	if (!list || !totalEl) return;
+	if (!Array.isArray(window.cart) || window.cart.length === 0) {
+		list.innerHTML = '<div class="text-sm text-gray-500">Your cart is empty.</div>';
+		totalEl.textContent = '$0.00';
+		return;
+	}
+
+	list.innerHTML = window.cart.map(function (it) {
+		var title = escapeHtml(it.title || '');
+		var price = Number(it.price || 0).toFixed(2);
+		var qty = it.quantity || 1;
+		var img = escapeHtml(it.image || '');
+		return `
+			<div class="flex items-start gap-3">
+				<img src="${img}" class="w-14 h-14 object-contain bg-gray-100 rounded" alt="${title}">
+				<div class="flex-1">
+					<div class="flex items-center justify-between">
+						<div class="font-semibold text-sm">${title}</div>
+						<button data-remove="${it.id}" aria-label="Remove from cart" class="text-gray-400 hover:text-red-500 remove-cart-btn"><i class="fa-solid fa-xmark"></i></button>
+					</div>
+					<div class="mt-2 flex items-center gap-3">
+						<div class="inline-flex items-center rounded border border-gray-200">
+							<button data-dec="${it.id}" class="px-2 py-1 dec-btn text-gray-600">-</button>
+							<div class="px-3 py-1 text-sm" data-qty="${it.id}">${qty}</div>
+							<button data-inc="${it.id}" class="px-2 py-1 inc-btn text-gray-600">+</button>
+						</div>
+						<div class="text-sm text-gray-600">Unit: $${price}</div>
+					</div>
+				</div>
+				<div class="text-right">
+					<div class="font-semibold">$${(Number(price) * qty).toFixed(2)}</div>
+				</div>
+			</div>
+		`;
+	}).join('<hr class="my-3"/>');
+
+	totalEl.textContent = '$' + computeCartTotal().toFixed(2);
+
+	// attach remove handlers
+	list.querySelectorAll('.remove-cart-btn').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var id = btn.getAttribute('data-remove');
+			if (!id) return;
+			removeFromCart(id);
+		});
+	});
+
+	// attach increment/decrement handlers
+	list.querySelectorAll('.inc-btn').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var id = btn.getAttribute('data-inc');
+			if (!id) return;
+			changeQuantity(id, 1);
+		});
+	});
+	list.querySelectorAll('.dec-btn').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var id = btn.getAttribute('data-dec');
+			if (!id) return;
+			changeQuantity(id, -1);
+		});
+	});
+}
+
+function changeQuantity(id, delta) {
+	var pid = String(id);
+	var item = (window.cart || []).find(function (it) { return String(it.id) === pid; });
+	if (!item) return;
+	item.quantity = (item.quantity || 1) + delta;
+	if (item.quantity <= 0) {
+		// remove if zero or less
+		window.cart = (window.cart || []).filter(function (it) { return String(it.id) !== pid; });
+	}
+	saveCartToStorage().then(function () {
+		updateCartCountUI();
+		renderCartSidebar();
+	});
+}
+
+function addToCart(id) {
+	var pid = String(id);
+	var p = (window.productsArray || []).find(function (x) { return String(x.id) === pid; });
+	if (!p) {
+		// try fetching if not present in stored products
+		fetch('https://fakestoreapi.com/products/' + id)
+			.then(function (res) { if (!res.ok) throw new Error('Network'); return res.json(); })
+			.then(function (product) { storeProduct(product); addToCart(product.id); })
+			.catch(function (err) { console.error('Failed to fetch product for addToCart', err); });
+		return;
+	}
+
+	var existing = (window.cart || []).find(function (it) { return String(it.id) === pid; });
+	if (existing) {
+		existing.quantity = (existing.quantity || 1) + 1;
+	} else {
+		window.cart.push({ id: p.id, title: p.title, price: p.price, image: p.image, quantity: 1 });
+	}
+	saveCartToStorage().then(function () {
+		updateCartCountUI();
+		renderCartSidebar();
+	});
+}
+
+function removeFromCart(id) {
+	var pid = String(id);
+	window.cart = (window.cart || []).filter(function (it) { return String(it.id) !== pid; });
+	saveCartToStorage().then(function () {
+		updateCartCountUI();
+		renderCartSidebar();
+	});
+}
+
+// Cart & product startup wiring
+document.addEventListener('DOMContentLoaded', function () {
+	// load products and cart from localStorage (promise-based, no try/catch)
+	Promise.all([loadProductsFromStorage(), loadCartFromStorage()]).then(function () {
+		updateCartCountUI();
+		renderCartSidebar();
+	});
+
+	var cartToggles = document.querySelectorAll('#cartToggleBtn, #cartToggleBtnMobile');
+	var cartSidebar = document.getElementById('cartSidebar');
+	var cartClose = document.getElementById('cartCloseBtn');
+	if (cartToggles && cartToggles.length && cartSidebar) {
+		cartToggles.forEach(function (cartToggle) {
+			cartToggle.addEventListener('click', function () {
+				cartSidebar.classList.toggle('hidden');
+				renderCartSidebar();
+			});
+		});
+	}
+	if (cartClose && cartSidebar) {
+		cartClose.addEventListener('click', function () { cartSidebar.classList.add('hidden'); });
 	}
 });
 
