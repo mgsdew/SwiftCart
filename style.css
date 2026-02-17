@@ -1,0 +1,28 @@
+/* Site custom styles moved from inline to this file */
+
+/* Hero helpers */
+@media (min-width: 1024px) {
+  .hero-min-h { min-height: 520px; }
+}
+
+/* Hero background image */
+.hero-bg {
+  background-image: url('assets/banner-image.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Feature badge (top-left icon) */
+.feature-badge {
+  box-shadow: 0 6px 18px rgba(79,70,229,0.12);
+  border-radius: 0; /* square badge */
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-badge i {
+  font-size: 18px;
+}
