@@ -1,12 +1,12 @@
 /* Site custom styles moved from inline to this file */
 
-/* Hero helpers */
+/* helpers */
 @media (min-width: 1024px) {
-  .hero-min-h { min-height: 520px; }
+  .product-min-h { min-height: 520px; }
 }
 
-/* Hero background image */
-.hero-bg {
+/* background image */
+.shopping-bg {
   background-image: url('assets/banner-image.png');
   background-size: cover;
   background-position: center;
@@ -25,4 +25,51 @@
 
 .feature-badge i {
   font-size: 18px;
+}
+
+/* Loading skeletons and spinner */
+.skeleton-card {
+  background: #fff;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.skeleton-rect {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e6e7ea 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+.skeleton-img {
+  height: 12rem;
+  display: block;
+}
+.skeleton-line { height: 0.8rem; margin: 0.5rem 0; border-radius: 4px; }
+
+.skeleton-sm { height: 0.6rem; width: 40%; }
+.skeleton-md { height: 0.8rem; width: 70%; }
+.skeleton-lg { height: 1rem; width: 90%; }
+
+.spinner {
+  border: 4px solid rgba(0,0,0,0.08);
+  border-top-color: #4f46e5; /* indigo-600 */
+  border-radius: 9999px;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Clamp title to single line with ellipsis */
+.one-line-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

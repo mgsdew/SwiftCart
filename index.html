@@ -26,16 +26,13 @@
                 </div>
 
                 <nav class="hidden md:flex gap-6 text-sm font-medium justify-center">
-                    <a href="#" class="text-gray-600 hover:text-indigo-600">Home</a>
-                    <a href="#products" class="text-gray-600 hover:text-indigo-600">Products</a>
+                    <a href="/index.html" class="text-gray-600 hover:text-indigo-600">Home</a>
+                    <a href="/products.html" class="text-gray-600 hover:text-indigo-600">Products</a>
                     <a href="#about" class="text-gray-600 hover:text-indigo-600">About</a>
                     <a href="#contact" class="text-gray-600 hover:text-indigo-600">Contact</a>
                 </nav>
 
                 <div class="flex items-center gap-3">
-                    <!-- <button aria-label="Search" class="hidden md:inline-flex items-center justify-center h-9 w-9 rounded-md border border-gray-200">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button> -->
                     <a href="#cart" class="hidden md:inline-flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md"><i class="fa-solid fa-cart-shopping"></i></a>
 
                     <!-- Mobile menu button -->
@@ -49,25 +46,25 @@
         <!-- Mobile nav -->
         <div id="mobileMenu" class="md:hidden hidden">
             <div class="px-4 pt-2 pb-4 space-y-1 bg-white border-t border-gray-100">
-                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Home</a>
-                <a href="#products" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Products</a>
+                <a href="/index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Home</a>
+                <a href="/products.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Products</a>
                 <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">About</a>
                 <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Contact</a>
             </div>
         </div>
     </header>
 
-    <!-- Hero -->
+    <!-- shopping -->
     <main>
-        <section class="relative hero-min-h">
-            <div class="absolute inset-0 bg-cover bg-center hero-bg"></div>
+        <section class="relative product-min-h">
+            <div class="absolute inset-0 bg-cover bg-center shopping-bg"></div>
             <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-black/50"></div>
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-white">
                 <div class="max-w-2xl">
                     <h1 class="text-4xl font-extrabold sm:text-5xl">Best Collection For You</h1>
                     <p class="mt-4 text-lg text-gray-200">Discover the latest trends in fashion, electronics, and more. Shop with confidence and style at SwiftCart.</p>
                     <div class="mt-8">
-                        <a href="#products" class="inline-flex items-center px-5 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-semibold">Shop Now</a>
+                        <a href="/products.html" class="inline-flex items-center px-5 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white font-semibold">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -137,7 +134,7 @@
                 <h5 class="text-gray font-semibold">QUICK LINKS</h5>
                 <ul class="mt-3 space-y-2 text-sm">
                     <li><a href="#" class="hover:underline">Home</a></li>
-                    <li><a href="#products" class="hover:underline">Products</a></li>
+                    <li><a href="/products.html" class="hover:underline">Products</a></li>
                     <li><a href="#about" class="hover:underline">About</a></li>
                     <li><a href="#contact" class="hover:underline">Contact</a></li>
                 </ul>
@@ -166,5 +163,17 @@
     </footer>
 
     <script src="script.js"></script>
+    <!-- Product details modal -->
+    <div id="productModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+        <div id="productModalOverlay" class="absolute inset-0 bg-black/50"></div>
+        <div class="relative bg-white rounded-lg shadow-lg max-w-2xl w-full mx-4 p-6 z-10">
+            <button id="modalCloseBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modalContent">
+                <!-- Populated from Script.js -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
