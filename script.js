@@ -598,7 +598,7 @@ function removeFromCart(id) {
 
 // Cart & product startup wiring
 document.addEventListener('DOMContentLoaded', function () {
-	// load products and cart from localStorage (promise-based, no try/catch)
+	// load products and cart from localStorage 
 	Promise.all([loadProductsFromStorage(), loadCartFromStorage()]).then(function () {
 		updateCartCountUI();
 		renderCartSidebar();
